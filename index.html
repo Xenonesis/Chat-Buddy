@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Buddy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans antialiased min-h-screen">
+    <div class="flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm transition-all sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <span class="text-2xl font-bold text-primary-600 flex items-center">
+                        <span class="text-primary-600 animate-bounce-slow mr-2">
+                            <i class="fas fa-robot"></i>
+                        </span>
+                        <span>AI Chat</span>
+                    </span>
+                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">v3.0</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="quick-commands" class="tooltip p-2 rounded-full hover:bg-gray-100 transition-all">
+                        <i class="fas fa-bolt text-gray-600"></i>
+                        <span class="tooltip-text">Quick Commands</span>
+                    </button>
+                    <button id="clear-chat" class="tooltip p-2 rounded-full hover:bg-gray-100 transition-all">
+                        <i class="fas fa-trash-alt text-gray-600"></i>
+                        <span class="tooltip-text">Clear Chat</span>
+                    </button>
+                    <button id="export-chat" class="tooltip p-2 rounded-full hover:bg-gray-100 transition-all">
+                        <i class="fas fa-download text-gray-600"></i>
+                        <span class="tooltip-text">Export Chat</span>
+                    </button>
+                    <button id="theme-toggle" class="tooltip p-2 rounded-full hover:bg-gray-100 transition-all">
+                        <i class="fas fa-moon text-gray-600"></i>
+                        <span class="tooltip-text">Toggle Theme</span>
+                    </button>
+                    <div class="relative">
+                        <button id="settings-btn" class="tooltip p-2 rounded-full hover:bg-gray-100 transition-all">
+                            <i class="fas fa-cog text-gray-600"></i>
+                            <span class="tooltip-text">Settings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main class="flex-1 flex flex-col max-w-6xl w-full mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex-1 flex flex-col">
+                <!-- Model selection bar as pills -->
+                <div class="flex justify-center mb-4">
+                    <div class="inline-flex bg-white p-1 rounded-full shadow-sm">
+                        <button class="model-btn flex items-center px-4 py-2 rounded-full bg-primary-600 text-white font-medium transition-all" 
+                                data-model="claude">
+                            <img src="/api/placeholder/20/20" alt="Claude" class="w-4 h-4 mr-2 rounded-full"/>
+                            Claude
+                        </button>
+                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
+                                data-model="gemini">
+                            <img src="/api/placeholder/20/20" alt="Gemini" class="w-4 h-4 mr-2 rounded-full"/>
+                            Gemini
+                        </button>
+                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
+                                data-model="mistral">
+                            <img src="/api/placeholder/20/20" alt="Mistral" class="w-4 h-4 mr-2 rounded-full"/>
+                            Mistral
+                        </button>
+                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
+                                data-model="gpt">
+                            <img src="/api/placeholder/20/20" alt="GPT" class="w-4 h-4 mr-2 rounded-full"/>
+                            GPT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat container with chat bubbles -->
+                <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <!-- Chat header -->
+                    <div class="p-4 bg-gradient-to-r from-primary-500 to-primary-600 border-b border-primary-700 flex flex-wrap justify-between items-center text-white">
+                        <div class="flex items-center mb-2 sm:mb-0">
+                            <div class="w-3 h-3 bg-green-300 rounded-full mr-2 pulse"></div>
+                            <span class="font-medium" id="current-model-display">Claude</span>
+                            <span class="text-xs text-primary-100 ml-2" id="conversation-info">New conversation</span>
+                        </div>
+                        <div class="flex">
+                            <select id="conversation-mode" class="text-sm bg-primary-700 text-white border-primary-600 rounded-md shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+                                <option value="standard">Standard Chat</option>
+                                <option value="creative">Creative Mode</option>
+                                <option value="precise">Precise Answers</option>
+                                <option value="coding">Coding Assistant</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Conversation options bar -->
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center text-sm">
+                        <div id="message-count" class="text-gray-500">0 messages</div>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="auto-scroll" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <span class="ml-2 text-gray-600">Auto-scroll</span>
+                            </label>
+                            <button id="scroll-to-bottom" class="text-primary-600 hover:text-primary-800 transition-colors">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat messages -->
+                    <div id="chat-container" class="flex-1 p-4 overflow-y-auto chat-container space-y-6 bg-gradient-to-b from-gray-50 to-white">
+                        <div class="flex flex-col items-center justify-center h-full space-y-6 welcome-screen">
+                            <div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-3xl mb-4">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-800">Welcome to Chat Buddy </h2>
+                            <p class="text-gray-600 text-center max-w-md">Choose an AI model above and start chatting. Your AI assistant is ready to help with anything you need.</p>
+                            <div class="grid grid-cols-2 gap-3 max-w-lg w-full">
+                                <button class="quick-prompt p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-left">
+                                    <div class="font-medium text-gray-800">Explain a concept</div>
+                                    <div class="text-xs text-gray-500 mt-1">Get simple explanations on any topic</div>
+                                </button>
+                                <button class="quick-prompt p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-left">
+                                    <div class="font-medium text-gray-800">Creative writing</div>
+                                    <div class="text-xs text-gray-500 mt-1">Generate stories, poems, and more</div>
+                                </button>
+                                <button class="quick-prompt p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-left">
+                                    <div class="font-medium text-gray-800">Code assistance</div>
+                                    <div class="text-xs text-gray-500 mt-1">Get help with programming</div>
+                                </button>
+                                <button class="quick-prompt p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-left">
+                                    <div class="font-medium text-gray-800">Brainstorm ideas</div>
+                                    <div class="text-xs text-gray-500 mt-1">Generate creative ideas for any project</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input area with improved UI -->
+                    <div class="border-t border-gray-200 p-4 bg-white transition-all">
+                        <div class="flex items-start">
+                            <div class="w-full">
+                                <div class="relative">
+                                    <textarea id="user-input" 
+                                          class="w-full px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 block rounded-xl sm:text-sm border border-gray-300 resize-none min-h-[80px] pr-16" 
+                                          placeholder="Type your message here..."
+                                          rows="3"></textarea>
+                                    <div class="absolute right-3 bottom-3 flex items-center space-x-2">
+                                        <button id="attach-file" class="text-gray-400 hover:text-gray-600 p-1 transition-colors">
+                                            <i class="fas fa-paperclip"></i>
+                                        </button>
+                                        <button id="clear-input" class="text-gray-400 hover:text-gray-600 p-1 transition-colors">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-wrap justify-between items-center mt-2">
+                                    <div class="text-xs text-gray-500 flex items-center mb-2 sm:mb-0">
+                                        <span id="char-count">0</span> characters
+                                        <span class="mx-2">|</span>
+                                        <span>Press <kbd class="bg-gray-200 px-1 py-0.5 rounded text-xs">Shift+Enter</kbd> for new line</span>
+                                    </div>
+                                    
+                                    <button id="send-btn" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                                        <i class="fas fa-paper-plane mr-2"></i>
+                                        Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response actions toolbar (appears below AI responses) -->
+            <div id="response-actions-template" class="hidden">
+                <div class="flex flex-wrap space-x-3 mt-1 response-actions">
+                    <button class="copy-btn text-xs text-gray-500 hover:text-primary-600 p-1 flex items-center transition-all">
+                        <i class="fas fa-copy mr-1"></i> Copy
+                    </button>
+                    <button class="regenerate-btn text-xs text-gray-500 hover:text-primary-600 p-1 flex items-center transition-all">
+                        <i class="fas fa-redo-alt mr-1"></i> Regenerate
+                    </button>
+                    <button class="feedback-positive-btn text-xs text-gray-500 hover:text-green-600 p-1 flex items-center transition-all">
+                        <i class="fas fa-thumbs-up mr-1"></i> Helpful
+                    </button>
+                    <button class="feedback-negative-btn text-xs text-gray-500 hover:text-red-600 p-1 flex items-center transition-all">
+                        <i class="fas fa-thumbs-down mr-1"></i> Not helpful
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings modal with improved UI -->
+        <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl max-w-md w-full shadow-xl p-6 transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Settings</h3>
+                    <button id="close-settings" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="border-b border-gray-200 mb-4">
+                    <nav class="-mb-px flex overflow-x-auto" aria-label="Tabs">
+                        <button id="tab-api-keys" class="tab-btn whitespace-nowrap py-2 px-4 border-b-2 border-primary-500 text-sm font-medium text-primary-600">
+                            API Keys
+                        </button>
+                        <button id="tab-display" class="tab-btn whitespace-nowrap py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors">
+                            Display
+                        </button>
+                        <button id="tab-advanced" class="tab-btn whitespace-nowrap py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors">
+                            Advanced
+                        </button>
+                    </nav>
+                </div>
+                
+                <!-- API Keys Tab Content -->
+                <div id="content-api-keys" class="tab-content space-y-4 max-h-[60vh] overflow-y-auto">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Claude API Key</label>
+                            <a href="https://console.anthropic.com/" target="_blank" class="text-xs text-primary-600 hover:text-primary-800 transition-colors">
+                                Get API key <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="password" id="claude-api-key" placeholder="Enter Claude API key" 
+                                  class="block w-full pr-10 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button id="toggle-claude-key-visibility" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Gemini API Key</label>
+                            <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-xs text-primary-600 hover:text-primary-800 transition-colors">
+                                Get API key <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="password" id="gemini-api-key" value="AIzaSyD4w34TttTKrXQ1-O1-ynaFN3cQ6bjBxvo" 
+                                  class="block w-full pr-10 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button id="toggle-gemini-key-visibility" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Mistral API Key</label>
+                            <a href="https://console.mistral.ai/" target="_blank" class="text-xs text-primary-600 hover:text-primary-800 transition-colors">
+                                Get API key <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="password" id="mistral-api-key" value="iZKIb5Ibz2QdIYYBGUZpWj4aF18xlD5y" 
+                                  class="block w-full pr-10 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button id="toggle-mistral-key-visibility" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">OpenAI API Key</label>
+                            <a href="https://platform.openai.com/api-keys" target="_blank" class="text-xs text-primary-600 hover:text-primary-800 transition-colors">
+                                Get API key <i class="fas fa-external-link-alt ml-1"></i>
+                            </a>
+                        </div>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="password" id="openai-api-key" placeholder="Enter OpenAI API key" 
+                                  class="block w-full pr-10 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button id="toggle-openai-key-visibility" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Display Tab Content -->
+                <div id="content-display" class="tab-content space-y-4 hidden max-h-[60vh] overflow-y-auto">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Interface Options</label>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex items-center">
+                                <input id="show-timestamps" type="checkbox" 
+                                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="show-timestamps" class="ml-2 block text-sm text-gray-700">
+                                    Show message timestamps
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="enable-animations" type="checkbox" checked
+                                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="enable-animations" class="ml-2 block text-sm text-gray-700">
+                                    Enable animations
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="compact-mode" type="checkbox"
+                                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="compact-mode" class="ml-2 block text-sm text-gray-700">
+                                    Compact message display
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                        <div class="mt-2">
+                            <div class="flex items-center space-x-2">
+                                <button id="font-size-sm" class="px-3 py-1 border border-gray-300 rounded-md text-sm transition-colors">Small</button>
+                                <button id="font-size-md" class="px-3 py-1 border border-primary-600 bg-primary-50 text-primary-600 rounded-md text-sm transition-colors">Medium</button>
+                                <button id="font-size-lg" class="px-3 py-1 border border-gray-300 rounded-md text-sm transition-colors">Large</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Code Block Theme</label>
+                        <select id="code-theme" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                            <option value="github">GitHub (Light)</option>
+                            <option value="atom-one-dark">Atom One Dark</option>
+                            <option value="dracula">Dracula</option>
+                            <option value="vs2015">Visual Studio 2015</option>
+                            <option value="monokai">Monokai</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Advanced Tab Content -->
+                <div id="content-advanced" class="tab-content space-y-4 hidden max-h-[60vh] overflow-y-auto">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Model Parameters</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="temperature" class="block text-xs text-gray-500">Temperature</label>
+                                <div class="flex items-center mt-1">
+                                    <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7"
+                                          class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <span id="temperature-value" class="ml-2 text-sm w-8">0.7</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="max-tokens" class="block text-xs text-gray-500">Max Tokens</label>
+                                <input type="number" id="max-tokens" value="1000" min="100" max="4000" step="100"
+                                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Conversation Memory</label>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex items-center">
+                                <input id="memory-enabled" type="checkbox" checked
+                                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="memory-enabled" class="ml-2 block text-sm text-gray-700">
+                                    Enable conversation history
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <label for="memory-limit" class="block text-xs text-gray-500 w-32">Message limit:</label>
+                                <select id="memory-limit" class="block w-full pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 rounded-md">
+                                    <option value="10">Last 10 messages</option>
+                                    <option value="20" selected>Last 20 messages</option>
+                                    <option value="50">Last 50 messages</option>
+                                    <option value="0">No limit (full context)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Streaming Responses</label>
+                        <div class="mt-2">
+                            <div class="flex items-center">
+                                <input id="streaming-enabled" type="checkbox" checked
+                                      class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="streaming-enabled" class="ml-2 block text-sm text-gray-700">
+                                    Enable streaming responses
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Data Management</label>
+                        <div class="mt-1 space-y-2">
+                            <button id="export-all-chats" class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                                <i class="fas fa-download mr-2"></i> Export All Conversations
+                            </button>
+                            <button id="clear-all-data" class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-xl shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">
+                                <i class="fas fa-trash-alt mr-2"></i> Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5 flex justify-end">
+                    <button id="save-settings" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick commands modal -->
+        <div id="commands-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl p-6 transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Quick Commands</h3>
+                    <button id="close-commands" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto">
+                    <p class="text-sm text-gray-500">Use these shortcuts to quickly add common prompts:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Explain concept</div>
+                            <div class="text-xs text-gray-500">Explain [topic] in simple terms</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Code example</div>
+                            <div class="text-xs text-gray-500">Write code to [task] in [language]</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Compare and contrast</div>
+                            <div class="text-xs text-gray-500">Compare [A] and [B] in detail</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Summarize text</div>
+                            <div class="text-xs text-gray-500">Summarize: [paste text]</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Brainstorm ideas</div>
+                            <div class="text-xs text-gray-500">Generate 5 ideas for [topic]</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Create a plan</div>
+                            <div class="text-xs text-gray-500">Create a step-by-step plan for [goal]</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Debug code</div>
+                            <div class="text-xs text-gray-500">Debug this code: [paste code]</div>
+                        </button>
+                        
+                        <button class="command-btn text-left px-3 py-2 border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-sm text-sm transition-all">
+                            <div class="font-medium">Analyze pros and cons</div>
+                            <div class="text-xs text-gray-500">What are the pros and cons of [topic]?</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feedback modal -->
+        <div id="feedback-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl max-w-md w-full shadow-xl p-6 transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Share Feedback</h3>
+                    <button id="close-feedback" class="text-gray-400 hover:text-gray-500 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500">Please share your thoughts on the last response:</p>
+                    
+                    <textarea id="feedback-text" 
+                          class="w-full px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 block rounded-xl sm:text-sm border border-gray-300 resize-none min-h-[100px]" 
+                          placeholder="What could be improved?"></textarea>
+                    
+                    <div class="flex justify-end">
+                        <button id="submit-feedback" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                            Submit Feedback
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
