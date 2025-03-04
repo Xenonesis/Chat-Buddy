@@ -36,6 +36,69 @@
             }
         }
     </script>
+    <style>
+        /* Model icon button styles */
+        .model-btn {
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: visible;
+        }
+
+        .model-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: currentColor;
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
+            opacity: 0.7;
+            border-radius: 3px;
+        }
+
+        .model-btn:hover::after {
+            width: 40%;
+        }
+
+        .model-btn[data-model="claude"] {
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+        }
+
+        .model-btn:not([data-model="claude"]):hover {
+            transform: translateY(-2px);
+        }
+
+        .model-btn .model-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .model-btn:hover .model-icon {
+            transform: scale(1.1);
+        }
+
+        .model-btn:active .model-icon {
+            transform: scale(0.95);
+        }
+
+        /* Model selection indicator dot */
+        .model-indicator {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .model-btn[data-model="claude"] .model-indicator {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased min-h-screen">
     <div class="flex flex-col min-h-screen">
@@ -47,7 +110,7 @@
                         <span class="text-primary-600 animate-bounce-slow mr-2">
                             <i class="fas fa-robot"></i>
                         </span>
-                        <span>AI Chat</span>
+                        <span>Chat Buddy</span>
                     </span>
                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">v3.0</span>
                 </div>
@@ -81,28 +144,65 @@
         <!-- Main content -->
         <main class="flex-1 flex flex-col max-w-6xl w-full mx-auto px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex-1 flex flex-col">
-                <!-- Model selection bar as pills -->
+                <!-- Model selection with custom brand-accurate SVG icons -->
                 <div class="flex justify-center mb-4">
-                    <div class="inline-flex bg-white p-1 rounded-full shadow-sm">
-                        <button class="model-btn flex items-center px-4 py-2 rounded-full bg-primary-600 text-white font-medium transition-all" 
-                                data-model="claude">
-                            <img src="/api/placeholder/20/20" alt="Claude" class="w-4 h-4 mr-2 rounded-full"/>
-                            Claude
+                    <div class="inline-flex bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm">
+                        <!-- Claude (Anthropic) -->
+                        <button class="model-btn flex flex-col items-center justify-center w-16 h-16 rounded-full bg-primary-600 text-white hover:bg-primary-700 transition-all" 
+                                data-model="claude" aria-label="Claude">
+                            <div class="w-8 h-8 flex items-center justify-center model-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                    <path d="M20,12a8,8,0,1,0-8,8A8,8,0,0,0,20,12ZM6.91,9.41a.59.59,0,0,1,.59-.59H9.09a.6.6,0,0,1,.6.59v5.13a.6.6,0,0,1-.6.6H7.5a.59.59,0,0,1-.59-.6Zm7,0a.6.6,0,0,1,.6-.59h1.59a.59.59,0,0,1,.59.59v5.13a.59.59,0,0,1-.59.6H14.5a.6.6,0,0,1-.6-.6Z"/>
+                                </svg>
+                            </div>
+                            <span class="text-[10px] font-medium mt-1">Claude</span>
+                            <div class="model-indicator bg-white"></div>
                         </button>
-                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
-                                data-model="gemini">
-                            <img src="/api/placeholder/20/20" alt="Gemini" class="w-4 h-4 mr-2 rounded-full"/>
-                            Gemini
+                        
+                        <!-- Gemini (Google) -->
+                        <button class="model-btn flex flex-col items-center justify-center w-16 h-16 mx-1.5 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                data-model="gemini" aria-label="Gemini">
+                            <div class="w-8 h-8 flex items-center justify-center model-icon">
+                                <svg viewBox="0 0 24 24" width="24" height="24">
+                                    <path d="M8.45,12.89l-1.55,3.04l1.55,3.04c.28,.56,.56,.85,.99,.85,.56,0,1.06-.5,1.06-1.06v-5.64c0-.56-.5-1.06-1.06-1.06-.42,0-.71,.28-.99,.85Z" fill="#4285F4"/>
+                                    <path d="M3.89,10.58v2.83c0,.42,.21,.78,.64,.78,.42,0,.64-.35,.64-.78v-2.83c0-.42-.21-.78-.64-.78-.42,0-.64,.35-.64,.78Z" fill="#EA4335"/>
+                                    <path d="M17.86,12.89l1.55,3.04-1.55,3.04c-.28,.56-.57,.85-1,.85-.57,0-1.07-.5-1.07-1.06v-5.64c0-.56,.5-1.06,1.07-1.06,.43,0,.71,.28,1,.85Z" fill="#FBBC04"/>
+                                    <path d="M22.42,10.58v2.83c0,.42-.21,.78-.64,.78-.42,0-.64-.35-.64-.78v-2.83c0-.42,.21-.78,.64-.78,.42,0,.64,.35,.64,.78Z" fill="#34A853"/>
+                                    <path d="M15.97,8.07l-2.75-4.2c-.28-.42-.71-.71-1.21-.71s-.92,.28-1.21,.71l-2.75,4.2c-.28,.42-.28,.92,0,1.34,.28,.42,.71,.71,1.21,.71h5.5c.5,0,.92-.28,1.21-.71,.28-.42,.28-.92,0-1.34Z" fill="#4285F4"/>
+                                </svg>
+                            </div>
+                            <span class="text-[10px] font-medium mt-1">Gemini</span>
+                            <div class="model-indicator" style="background-color: #4285F4;"></div>
                         </button>
-                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
-                                data-model="mistral">
-                            <img src="/api/placeholder/20/20" alt="Mistral" class="w-4 h-4 mr-2 rounded-full"/>
-                            Mistral
+                        
+                        <!-- Mistral -->
+                        <button class="model-btn flex flex-col items-center justify-center w-16 h-16 mx-1.5 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                data-model="mistral" aria-label="Mistral">
+                            <div class="w-8 h-8 flex items-center justify-center model-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22">
+                                    <path d="M6.41 10.47c.15 2.06 1.2 3.82 2.79 5a7.44 7.44 0 0 1-1.55-4.76c.06-3.38 2.46-6.2 5.62-7 .24-.05.47-.09.71-.11a7.92 7.92 0 0 0-1.64-.16c-3.55.06-6.47 2.97-6.47 6.62 0 .14 0 .28.02.41h.52ZM19.16 12c0-.2-.01-.39-.03-.58a5.977 5.977 0 0 1-9.09 6.39c-.18.09-.28.14-.28.14.08.03.15.07.23.1 3.34 1.43 7.3-.35 8.78-3.9.25-.56.39-1.2.39-1.83v-.32Z"
+                                          fill="#00A6B9"/>
+                                    <path d="M18.26 8.19a5.971 5.971 0 0 1-.67 5.64 5.98 5.98 0 0 0-2.61-10.11c1.89.7 3.28 2.44 3.28 4.47Z"
+                                          fill="#E47F3C"/>
+                                    <path d="M11.63 18.47a7.864 7.864 0 0 1-1.5.15c-4.37-.08-7.89-3.74-7.89-8.19 0-2.94 1.51-5.52 3.79-6.96 1.4-.88 3.16-1.38 5.04-1.31-4.09.44-7.28 3.95-7.28 8.18 0 4.54 3.7 8.22 8.24 8.22-.13-.03-.27-.05-.4-.09Z"
+                                          fill="#00A6B9"/>
+                                </svg>
+                            </div>
+                            <span class="text-[10px] font-medium mt-1">Mistral</span>
+                            <div class="model-indicator" style="background-color: #00A6B9;"></div>
                         </button>
-                        <button class="model-btn flex items-center px-4 py-2 rounded-full text-gray-700 font-medium hover:bg-gray-100 transition-all"
-                                data-model="gpt">
-                            <img src="/api/placeholder/20/20" alt="GPT" class="w-4 h-4 mr-2 rounded-full"/>
-                            GPT
+                        
+                        <!-- GPT (OpenAI) -->
+                        <button class="model-btn flex flex-col items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                data-model="gpt" aria-label="GPT">
+                            <div class="w-8 h-8 flex items-center justify-center model-icon">
+                                <svg viewBox="0 0 24 24" width="22" height="22">
+                                    <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7818a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.5093-2.6067-1.4997z" 
+                                          fill="#10A37F"/>
+                                </svg>
+                            </div>
+                            <span class="text-[10px] font-medium mt-1">GPT</span>
+                            <div class="model-indicator" style="background-color: #10A37F;"></div>
                         </button>
                     </div>
                 </div>
@@ -146,7 +246,7 @@
                             <div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-3xl mb-4">
                                 <i class="fas fa-robot"></i>
                             </div>
-                            <h2 class="text-2xl font-bold text-gray-800">Welcome to Chat Buddy </h2>
+                            <h2 class="text-2xl font-bold text-gray-800">Welcome to Chat Buddy</h2>
                             <p class="text-gray-600 text-center max-w-md">Choose an AI model above and start chatting. Your AI assistant is ready to help with anything you need.</p>
                             <div class="grid grid-cols-2 gap-3 max-w-lg w-full">
                                 <button class="quick-prompt p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all text-left">
@@ -541,6 +641,38 @@
         </div>
     </div>
 
+    <script>
+        // JavaScript to handle model selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const modelBtns = document.querySelectorAll('.model-btn');
+            
+            modelBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active state from all buttons
+                    modelBtns.forEach(b => {
+                        b.classList.remove('bg-primary-600', 'text-white');
+                        if (b.dataset.model !== 'claude') {
+                            b.classList.add('bg-white', 'text-gray-700');
+                            b.classList.add('dark:bg-gray-800', 'dark:text-gray-300');
+                        }
+                    });
+                    
+                    // Add active state to clicked button
+                    btn.classList.remove('bg-white', 'text-gray-700', 'dark:bg-gray-800', 'dark:text-gray-300');
+                    btn.classList.add('bg-primary-600', 'text-white');
+                    
+                    // Update model display
+                    const modelDisplay = document.getElementById('current-model-display');
+                    if (modelDisplay) {
+                        modelDisplay.textContent = btn.dataset.model.charAt(0).toUpperCase() + btn.dataset.model.slice(1);
+                    }
+                    
+                    // Save selected model to state
+                    localStorage.setItem('currentModel', btn.dataset.model);
+                });
+            });
+        });
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
